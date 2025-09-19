@@ -56,11 +56,11 @@ func TestGetAPIKey(t *testing.T) {
 			got, err := GetAPIKey(header)
 			if err != nil {
 				if !strings.Contains(err.Error(), tc.wantErr) {
-					t.Fatalf("GetAPIKey() error = %v, wantErr %v", err, tc.wantErr)
+					t.Fatalf("GetAPIKey() error = %v, wantErr = %v", err, tc.wantErr)
 				}
 			}
 			if got != tc.want {
-				t.Fatalf("GetAPIKey() got = %v, want %v", got, tc.want)
+				t.Fatalf("GetAPIKey() got = %v, want = %v", got, tc.want)
 			}
 		})
 	}
