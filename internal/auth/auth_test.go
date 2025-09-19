@@ -2,51 +2,62 @@ package auth
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 )
 
 func TestGetAPIKey(t *testing.T) {
-	correctHeader := http.Header{}
-	correctHeader.Add("Authorization", "ApiKey YWRpdHlhZGFoYWtl")
-
-	incorrectHeaderLen := http.Header{}
-	incorrectHeaderLen.Add("Authorization", "ApiKey")
-
-	incorrectAuthHeader := http.Header{}
-	incorrectAuthHeader.Add("Authorization", "Bearer dGhpcyBpcyBteSB0b2tlbiEgRG8gbm90IHRvdWNoISE=")
-
 	tests := map[string]struct {
-		header  http.Header
+		key     string
+		value   string
 		want    string
-		wantErr bool
+		wantErr string
 	}{
-		"simple": {
-			header:  correctHeader,
-			want:    "YWRpdHlhZGFoYWtl",
-			wantErr: false,
-		},
 		"noAuthHeader": {
-			header:  http.Header{},
 			want:    "",
-			wantErr: true,
+			wantErr: ErrNoAuthHeaderIncluded.Error(),
 		},
-		"incorrectHeaderLength": {
-			header:  incorrectHeaderLen,
+		"emptyAuthHeader": {
+			key:     "Authorization",
 			want:    "",
-			wantErr: true,
+			wantErr: ErrNoAuthHeaderIncluded.Error(),
+		},
+		"malformedAuthHeader": {
+			key:     "Authorization",
+			value:   "-",
+			want:    "",
+			wantErr: "malformed authorization header",
 		},
 		"incorrectAuthHeader": {
-			header:  incorrectAuthHeader,
+			key:     "Authorization",
+			value:   "Bearer dGhpcyBpcyBteSB0b2tlbiEgRG8gbm90IHRvdWNoISE=",
 			want:    "",
-			wantErr: true,
+			wantErr: "malformed authorization header",
+		},
+		"incompleteAuthHeader": {
+			key:     "Authorization",
+			value:   "ApiKey",
+			want:    "",
+			wantErr: "malformed authorization header",
+		},
+		"correctAuthHeader": {
+			key:     "Authorization",
+			value:   "ApiKey YWRpdHlhZGFoYWtl",
+			want:    "YWRpdHlhZGFoYWtl",
+			wantErr: "not expecting an error",
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := GetAPIKey(tc.header)
-			if (err != nil) != tc.wantErr {
-				t.Fatalf("GetAPIKey() error = %v, wantErr %v", err, tc.wantErr)
+			header := http.Header{}
+			header.Add(tc.key, tc.value)
+
+			got, err := GetAPIKey(header)
+			if err != nil {
+				if !strings.Contains(err.Error(), tc.wantErr) {
+					t.Fatalf("GetAPIKey() error = %v, wantErr %v", err, tc.wantErr)
+				}
 			}
 			if got != tc.want {
 				t.Fatalf("GetAPIKey() got = %v, want %v", got, tc.want)
