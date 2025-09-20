@@ -25,4 +25,4 @@ jobs:
         uses: google-github-actions/setup-gcloud@v3.0.1
 
       - name: Build docker image and push to google artifact registry
-        run: gcloud builds submit --tag us-central1-docker.pkg.dev/notely-472705/notely-ar-repo/notely:latest .
+        run: gcloud builds submit --tag us-central1-docker.pkg.dev/notely-472705/notely-ar-repo/notely:latest --project notely-472705 .
